@@ -11,15 +11,10 @@ require('dotenv').config();
 
 app.use(express.static('../twitter-client/build'));
 
-//http://127.0.0.1:3000/2/tweets/search/recent?query=test
-
-app.get('/2/tweets/search/:recent', (req, res) => {
-    //Not sure if this right way to get searchterm
-    //Also, changing the query in the URL doesn't actually change the query?
-    const searchterm = req.params.recent;
+app.get('/search/:searchTerm', (req, res) => {
+    const searchterm = req.params.searchTerm;
     const query = `%23${searchterm}`;
     const getAuth = getAccessToken();
-
     console.log("QUERY = " + query);
 
     getAuth.then((token) => {
