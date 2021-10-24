@@ -12,7 +12,7 @@ require('dotenv').config();
 // Retrieve tweets based off search term param
 router.get('/:searchTerm', (req, res) => {
     const searchterm = req.params.searchTerm;
-    const query = `%23${searchterm}`;
+    const query = `%23${searchterm} -is:retweet -is:reply lang:en&max_results=30`;
     // authenticate with twitter before making get request
     const getAuth = getAccessToken();
 
