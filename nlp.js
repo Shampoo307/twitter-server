@@ -12,23 +12,23 @@ spellCorrector.loadDictionary();
 // Get array of tweets ({ id, text }) and get sentiment analysis for each tweet
 
 router.post('/s-analysis', (req, res) => {
-    const tweet = req.body;
+    const tweets = req.body;
     // analyse each tweet & return tweet + sentiment
-    // const analysedTweets = tweets.map((tweet, index) => {
+    const analysedTweets = tweets.map((tweet, index) => {
         const sentiment = getSentiment(tweet.text);
-        // return {
-        //     id: tweet.id,
-        //     text: tweet.text,
-        //     sentiment: sentiment
-        // }
-        const result = {
+        return {
             id: tweet.id,
             text: tweet.text,
             sentiment: sentiment
         }
-    // });
+        // const result = {
+        //     id: tweet.id,
+        //     text: tweet.text,
+        //     sentiment: sentiment
+        // }
+    });
 
-    res.status(200).json(result);
+    res.status(200).json(analysedTweets);
 });
 
 // adapted from https://blog.logrocket.com/sentiment-analysis-node-js/

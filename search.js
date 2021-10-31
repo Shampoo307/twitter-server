@@ -4,12 +4,11 @@ const axios = require('axios');
 const qs = require('qs');
 const { response } = require('express');
 const { request } = require('http');
-const responseTime = require('response-time');
-const redis = require('redis');
+// const redis = require('redis');
 require('dotenv').config();
-const AWS = require('aws-sdk');
+// const AWS = require('aws-sdk');
 //const { response } = require('express');
-const { CodeBuild } = require('aws-sdk');
+// const { CodeBuild } = require('aws-sdk');
 
 const router = express.Router();
 require('dotenv').config();
@@ -22,8 +21,8 @@ router.get('/:searchTerm', (req, res) => {
     const query = `%23${searchterm} -is:retweet -is:reply lang:en&max_results=30`;
     // authenticate with twitter before making get request
     const getAuth = getAccessToken();
-    const redisKey = `tweet:${searchterm}`;
-    const s3Key = `tweet-${searchterm}`;
+    // const redisKey = `tweet:${searchterm}`;
+    // const s3Key = `tweet-${searchterm}`;
 
     getAuth.then((token) => {
         const getOptions = {
@@ -35,30 +34,30 @@ router.get('/:searchTerm', (req, res) => {
             url: 'https://api.twitter.com/2/tweets/search/recent?query=' + query,
         }
         // Check redis cache
-        return redisClient.get(redisKey, (err, result) => {
-            if (result) {
-                const resultJSON = JSON.parse(result);
-                console.log("found in cache");
-                return res.status(200).json(resultJSON);
-            } else {
-                // check S3
+        // return redisClient.get(redisKey, (err, result) => {
+        //     if (result) {
+        //         const resultJSON = JSON.parse(result);
+        //         console.log("found in cache");
+        //         return res.status(200).json(resultJSON);
+        //     } else {
+        //         // check S3
                 
-                const params = { Bucket: bucketName, Key: s3Key };
-                return new AWS.S3({ apiVersion: '2006-03-01' }).getObject(params, (err, result) => {
-                    if (result) {
-                        const resultJSONS3 = JSON.parse(result.data);
-                        const resultJSONRedis = JSON.parse(result.data);
-                        console.log("found in cache");
-                        storeInRedis(redisKey, resultJSONRedis);
-                        return res.status(200).json({ source: "S3 Bucket", ...resultJSONS3 });
-                    } else {
+        //         const params = { Bucket: bucketName, Key: s3Key };
+        //         return new AWS.S3({ apiVersion: '2006-03-01' }).getObject(params, (err, result) => {
+        //             if (result) {
+        //                 const resultJSONS3 = JSON.parse(result.data);
+        //                 const resultJSONRedis = JSON.parse(result.data);
+        //                 console.log("found in cache");
+        //                 storeInRedis(redisKey, resultJSONRedis);
+        //                 return res.status(200).json({ source: "S3 Bucket", ...resultJSONS3 });
+        //             } else {
                         // Get results from twitter
-                        axios(getOptions)
+                        return axios(getOptions)
                             .then((response) => {
                                 const tweets = response.data;
                                 console.log("Made it into tweet search");
-                                storeInS3(s3Key, tweets);
-                                storeInRedis(redisKey, tweets);
+                                // storeInS3(s3Key, tweets);
+                                // storeInRedis(redisKey, tweets);
                                 res.send(tweets);
                             })
                             .catch((err) => {
@@ -71,10 +70,10 @@ router.get('/:searchTerm', (req, res) => {
                                     console.log('Error retrieving search result');
                                 }
                             });
-                    }
-                });
-            }
-        });
+            //         }
+            //     });
+            // }
+        // });
 
     });
 });
@@ -104,26 +103,26 @@ async function getAccessToken() {
         });
 }
 
-const bucketPromise = new AWS.S3({ apiVersion: '2006-03-01' })
-    .createBucket({ Bucket: bucketName })
-    .promise();
+// const bucketPromise = new AWS.S3({ apiVersion: '2006-03-01' })
+//     .createBucket({ Bucket: bucketName })
+//     .promise();
 
-bucketPromise.then((data) => {
-    console.log('Successfully created ', bucketName);
-})
-    .catch(err => {
-        console.error(err);
-    });
+// bucketPromise.then((data) => {
+//     console.log('Successfully created ', bucketName);
+// })
+//     .catch(err => {
+//         console.error(err);
+//     });
 
-const app = express();
+// const app = express();
 
-const redisClient = redis.createClient();
+// const redisClient = redis.createClient();
 
-redisClient.on('error', (err) => {
-    console.log('Error ', err);
-});
+// redisClient.on('error', (err) => {
+//     console.log('Error ', err);
+// });
 
-app.use(responseTime());
+// app.use(responseTime());
 
 function storeInS3(s3Key, jsonData) {
     const data = jsonData;

@@ -4,18 +4,19 @@ const app = express();
 const port = 3000;
 const axios = require('axios');
 const qs = require('qs');
-const { response } = require('express');
-const { request } = require('http');
-const responseTime = require('response-time');
+const http = require('http');
+
+const { setupWebSocket } = require('./websocket');
+
 
 
 const searchRouter = require('./search');
 const nlpRouter = require('./nlp');
+const { so } = require('stopword');
 
 app.use(express.json());
 app.use(express.urlencoded());
 
-app.use(responseTime());
 
 app.use('/search', searchRouter);
 app.use('/nlp', nlpRouter);
@@ -28,6 +29,9 @@ app.use((req, res) => {
     res.sendFile(path.join(__dirname, '../twitter-client/build', 'index.html'));
 });
 
-app.listen(port, () => {
 
-});
+const server = http.createServer(app);
+
+setupWebSocket(server);
+
+server.listen(3000);
