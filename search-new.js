@@ -7,7 +7,7 @@ const { getSentiment } = require('./nlp');
 
 
 async function searchForQuery(searchTerm, webSocket) {
-    const query = `%23${searchTerm} -is:retweet -is:reply lang:en&max_results=10`;
+    const query = `%23${searchTerm} -is:retweet -is:reply lang:en&max_results=10&tweet.fields=created_at`;
     // authenticate with twitter before making get request
     const getAuth = getAccessToken();
 
@@ -25,9 +25,11 @@ async function searchForQuery(searchTerm, webSocket) {
             const tweets = response.data.data;
             tweets.forEach(tweet => {
                 const sentiment = getSentiment(tweet.text);
+                const tweetDate = new Date(tweet.created_at).toLocaleDateString();
                 const newTweet = {
                     id: tweet.id,
                     text: tweet.text,
+                    created_at: tweetDate,
                     sentiment: sentiment
                 }
                 webSocket.send(JSON.stringify(newTweet));
