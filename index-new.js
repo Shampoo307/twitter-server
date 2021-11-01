@@ -11,7 +11,7 @@ const { setupWebSocket } = require('./websocket');
 
 
 const searchRouter = require('./search');
-const nlpRouter = require('./nlp');
+// const nlpRouter = require('./nlp');
 const { so } = require('stopword');
 
 app.use(express.json());
@@ -19,7 +19,7 @@ app.use(express.urlencoded());
 
 
 app.use('/search', searchRouter);
-app.use('/nlp', nlpRouter);
+// app.use('/nlp', nlpRouter);
 
 require('dotenv').config();
 

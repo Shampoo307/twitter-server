@@ -32,41 +32,13 @@ function setupWebSocket(server) {
             console.log("received message: ", message.toString());
             // on timer send result
             const userQuery = message.toString().replace(`\"`, '').replace(`\"`, '');
-            const queryString = `%23${userQuery} -is:retweet -is:reply lang:en&max_results=10`;
-            
-            const getAuth = getAccessToken();
-            getAuth.then(async (token) => {
-                const getOptions = {
-                    method: 'GET',
-                    headers: {
-                        'User-Agent': 'v2RecentSearchJS',
-                        'Authorization': 'Bearer ' + token
-                    },
-                    url: 'https://api.twitter.com/2/tweets/search/recent?query=' + queryString,
-                }
-        
-                try {
-                    const response = await axios(getOptions);
-                    const tweets = response.data.data;
-                    ctx.send(JSON.stringify(tweets));
-                } catch (err) {
-                    if (err.repsonse) {
-                        console.log('Error in Search Response');
-                    } else if (err.request) {
-                        console.log('Error in Search Request');
-
-                    } else {
-                        console.log('Error retrieving search result');
-                    }
-                }
-            });
+            searchForQuery(userQuery, ctx);
         });
 
         ctx.on("close", () => {
             console.log("Closed ", wss.clients.size);
         });
 
-        ctx.send("Connection established");
     });
 }
 

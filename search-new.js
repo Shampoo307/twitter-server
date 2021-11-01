@@ -3,15 +3,15 @@ const express = require('express');
 const axios = require('axios');
 const qs = require('qs');
 
+const { getSentiment } = require('./nlp');
 
-function searchForQuery(searchTerm) {
-    const searchterm = searchTerm;
-    console.log('SEARCH TERM ', searchterm);
-    const query = `%23${searchterm} -is:retweet -is:reply lang:en&max_results=10`;
+
+async function searchForQuery(searchTerm, webSocket) {
+    const query = `%23${searchTerm} -is:retweet -is:reply lang:en&max_results=10`;
     // authenticate with twitter before making get request
     const getAuth = getAccessToken();
 
-    getAuth.then((token) => {
+    getAuth.then(async (token) => {
         const getOptions = {
             method: 'GET',
             headers: {
@@ -20,25 +20,27 @@ function searchForQuery(searchTerm) {
             },
             url: 'https://api.twitter.com/2/tweets/search/recent?query=' + query,
         }
-
-        return axios(getOptions)
-            .then((response) => {
-                const tweets = response.data;
-                console.log("Made it into tweet search", tweets);
-                // storeInS3(s3Key, tweets);
-                // storeInRedis(redisKey, tweets);
-                return tweets;
-            })
-            .catch((err) => {
-                if (err.repsonse) {
-                    console.log('Error in Search Response');
-                } else if (err.request) {
-                    console.log('Error in Search Request');
-
-                } else {
-                    console.log('Error retrieving search result');
+        try {
+            const response = await axios(getOptions);
+            const tweets = response.data.data;
+            tweets.forEach(tweet => {
+                const sentiment = getSentiment(tweet.text);
+                const newTweet = {
+                    id: tweet.id,
+                    text: tweet.text,
+                    sentiment: sentiment
                 }
-            });
+                webSocket.send(JSON.stringify(newTweet));
+            })
+        } catch (err) {
+            if (err.repsonse) {
+                console.log('Error in Search Response');
+            } else if (err.request) {
+                console.log('Error in Search Request');
+            } else {
+                console.log('Error retrieving search result');
+            }
+        }
     })
 
 }

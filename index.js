@@ -10,7 +10,7 @@ const responseTime = require('response-time');
 
 
 const searchRouter = require('./search');
-const nlpRouter = require('./nlp');
+// const nlpRouter = require('./nlp');
 
 app.use(express.json());
 app.use(express.urlencoded());
@@ -18,7 +18,7 @@ app.use(express.urlencoded());
 app.use(responseTime());
 
 app.use('/search', searchRouter);
-app.use('/nlp', nlpRouter);
+// app.use('/nlp', nlpRouter);
 
 require('dotenv').config();
 

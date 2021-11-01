@@ -62,4 +62,4 @@ function getSentiment(tweet) {
 }
 
 
-module.exports = router;
+module.exports = { getSentiment };
