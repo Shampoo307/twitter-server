@@ -32,7 +32,7 @@ function setupWebSocket(server) {
             console.log("received message: ", message.toString());
             // on timer send result
             const userQuery = message.toString().replace(`\"`, '').replace(`\"`, '');
-            searchForQuery(userQuery, ctx);
+            await searchForQuery(userQuery, ctx);
         });
 
         ctx.on("close", () => {
