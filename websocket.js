@@ -1,9 +1,11 @@
 const WebSocket = require('ws');
+const axios = require('axios').default;
+const http = require('http');
+
+const { searchForQuery, getAccessToken } = require('./search-new');
 
 function setupWebSocket(server) {
     const wss = new WebSocket.Server({ noServer: true });
-    console.log('new websocket???');
-    broadcastPipeline(wss.clients);
 
     server.on('upgrade', function upgrade(request, socket, head) {
         try {
@@ -18,52 +20,55 @@ function setupWebSocket(server) {
         }
     });
 
-    wss.on('connection', (ctx) => {
 
-        const interval = individualPipeline(ctx);
+    // Stream query results
+    wss.on('connection', (ctx) => {
         console.log('new onnecteion???');
 
         console.log("Connected", wss.clients.size);
 
-        ctx.on("message", (message) => {
-            console.log("received message: ", message);
-            ctx.send('You said: ', message);
+        // On receiving query
+        ctx.on("message", async (message) => {
+            console.log("received message: ", message.toString());
+            // on timer send result
+            const userQuery = message.toString().replace(`\"`, '').replace(`\"`, '');
+            const queryString = `%23${userQuery} -is:retweet -is:reply lang:en&max_results=10`;
+            
+            const getAuth = getAccessToken();
+            getAuth.then(async (token) => {
+                const getOptions = {
+                    method: 'GET',
+                    headers: {
+                        'User-Agent': 'v2RecentSearchJS',
+                        'Authorization': 'Bearer ' + token
+                    },
+                    url: 'https://api.twitter.com/2/tweets/search/recent?query=' + queryString,
+                }
+        
+                try {
+                    const response = await axios(getOptions);
+                    const tweets = response.data.data;
+                    ctx.send(JSON.stringify(tweets));
+                } catch (err) {
+                    if (err.repsonse) {
+                        console.log('Error in Search Response');
+                    } else if (err.request) {
+                        console.log('Error in Search Request');
+
+                    } else {
+                        console.log('Error retrieving search result');
+                    }
+                }
+            });
         });
 
         ctx.on("close", () => {
             console.log("Closed ", wss.clients.size);
-            clearInterval(interval);
         });
 
         ctx.send("Connection established");
     });
 }
-
-
-
-function individualPipeline(ctx) {
-    let idx = 0;
-    const interval = setInterval(() => {
-      ctx.send(`ping pong ${idx}`);
-      idx++;
-    }, 5000);
-    return interval;
-  }
-  
-  // braodcast messages
-  // one instance for all clients
-  function broadcastPipeline(clients) {
-    let idx = 0;
-    const interval = setInterval(() => {
-      for (let c of clients.values()) {
-        c.send(`broadcast message ${idx}`);
-      }
-      idx++;
-    }, 3000);
-    return interval;
-  }
-
-
 
 
 module.exports = { setupWebSocket };

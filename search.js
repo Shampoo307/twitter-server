@@ -5,7 +5,6 @@ const qs = require('qs');
 const { response } = require('express');
 const { request } = require('http');
 // const redis = require('redis');
-require('dotenv').config();
 // const AWS = require('aws-sdk');
 //const { response } = require('express');
 // const { CodeBuild } = require('aws-sdk');
@@ -18,7 +17,8 @@ const bucketName = 'tomjoel-tweetstore';
 // Retrieve tweets based off search term param
 router.get('/:searchTerm', (req, res) => {
     const searchterm = req.params.searchTerm;
-    const query = `%23${searchterm} -is:retweet -is:reply lang:en&max_results=30`;
+    console.log('SEARCH TERM ', searchterm);
+    const query = `%23${searchterm} -is:retweet -is:reply lang:en&max_results=10`;
     // authenticate with twitter before making get request
     const getAuth = getAccessToken();
     // const redisKey = `tweet:${searchterm}`;
@@ -55,7 +55,7 @@ router.get('/:searchTerm', (req, res) => {
                         return axios(getOptions)
                             .then((response) => {
                                 const tweets = response.data;
-                                console.log("Made it into tweet search");
+                                console.log("Made it into tweet search", tweets);
                                 // storeInS3(s3Key, tweets);
                                 // storeInRedis(redisKey, tweets);
                                 res.send(tweets);
